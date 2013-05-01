@@ -6,11 +6,14 @@
 		<!-- // <script src="/socket.io/socket.io.js"></script> -->
 		<script src="http://localhost:8000/socket.io/socket.io.js"></script>
 		<script src="js/headtrackr.js"></script>
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 	</head>
 	<body id="index" onload="">
 
 		<canvas id="inputCanvas" width="320" height="240" style="display:none"></canvas>
 		<video id="inputVideo" autoplay loop></video>
+		<div id="start"><h3>start</h3></div>
+		<div id="stop"><h3>stop</h3></div>
 
 		<script>
 		  var socket = io.connect('http://localhost:8000');
@@ -21,6 +24,21 @@
 		</script>
 
 		<script type="text/javascript">
+
+			var state = "stop";
+
+			$('#start').click(function(){
+				console.log("takeoff");
+				state = "start";
+				socket.emit('my other event', 'takeoff');
+			});
+
+			$('#stop').click(function(){
+				console.log("takeoff");
+				state = "stop";
+				socket.emit('my other event', 'land');
+			});
+
 		  var videoInput = document.getElementById('inputVideo');
 		  var canvasInput = document.getElementById('inputCanvas');
 
@@ -30,31 +48,43 @@
 
 			function sleep(milliseconds) {
 			  var start = new Date().getTime();
-			  console.log('entering sleep');
+			  // console.log('entering sleep');
 			  for (var i = 0; i < 1e7; i++) {
 			    if ((new Date().getTime() - start) > milliseconds){
 			      break;
 			    }
 			  }
-			  console.log('leaving sleep');
+			  // console.log('leaving sleep');
 			}
 
-			var state = 0;
+			
 
 			document.addEventListener("facetrackingEvent", function(event) {
-				if(state == 0){
+				console.log(event.width+", "+event.angle);
+
+
+				if(state == "stop"){
 					return;
 				}
-				if (event.angle <= 1.35) {
+
+				if (event.angle < 1.35 ) {
 				 	socket.emit('my other event', 'left');
-				}
-				else if (event.angle >= 1.85) {
+				 	state = "left";
+				} else if (event.angle > 1.85) {
 				  socket.emit('my other event', 'right');
-				  
-				} else {
+				  state = "right";
+				} else if(event.width > 100) {
+					socket.emit('my other event', 'front');
+					state = "front";
+				} else if(event.width < 85) {
+					socket.emit('my other event', 'back');
+					state = "back";
+				} else if (state != "hover") {
 					socket.emit('my other event', 'hover');
+					state = "hover";
 				}
-				sleep(500);
+				console.log(state);
+				sleep(300);
 			});
 		</script>
 	</body>	
