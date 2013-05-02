@@ -16,6 +16,10 @@ io.sockets.on('connection', function (socket) {
     	drone.clockwise(1);
     } else if (data == 'hover') {
     	drone.stop();
+    } else if (data == 'front') {
+        drone.front(0.1);
+    } else if (data == 'back') {
+        drone.back(0.1);
     }
 
   });
